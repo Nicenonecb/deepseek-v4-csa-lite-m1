@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "litekv"
+version = "0.1.0"
+description = "A small attention-mechanism demo for DeepSeek-V4 long-context technical analysis."
+readme = "README.md"
+requires-python = ">=3.7"
+dependencies = []
+
+[project.optional-dependencies]
+experiment = [
+  "torch",
+  "matplotlib",
+]
+test = [
+  "pytest",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
