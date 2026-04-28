@@ -11,3 +11,4 @@ data/*
 !data/.gitkeep
 notes/*
 !notes/.gitkeep
+!notes/article_results_template.md

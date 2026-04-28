@@ -12,6 +12,7 @@ if str(SRC) not in sys.path:
 
 from litekv.config import load_config  # noqa: E402
 from litekv.experiment import run_experiment  # noqa: E402
+from litekv.plots import generate_plots  # noqa: E402
 
 
 def main() -> int:
@@ -33,6 +34,7 @@ def main() -> int:
 
     if not args.dry_run:
         artifacts = run_experiment(config)
+        plot_artifacts = generate_plots(artifacts.json_path, artifacts.output_dir)
         print(
             "Wrote {} rows to {} and {}.".format(
                 len(artifacts.rows),
@@ -40,6 +42,14 @@ def main() -> int:
                 artifacts.json_path,
             )
         )
+        print(
+            "Wrote {} plots to {}.".format(
+                len(plot_artifacts.plot_paths),
+                plot_artifacts.output_dir,
+            )
+        )
+        for warning in plot_artifacts.warnings:
+            print("Warning: {}".format(warning))
 
     return 0
 

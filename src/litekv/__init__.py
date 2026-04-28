@@ -5,6 +5,7 @@ from litekv.data import RetrievalCase, SyntheticTask, TargetRegion, generate_ret
 from litekv.attention import AttentionResult, run_attention
 from litekv.metrics import AttentionMetrics
 from litekv.experiment import ExperimentArtifacts, run_experiment
+from litekv.plots import PlotArtifacts, generate_plots
 
 __all__ = [
     "ATTENTION_MODES",
@@ -13,10 +14,12 @@ __all__ = [
     "AttentionResult",
     "ExperimentConfig",
     "RetrievalCase",
+    "PlotArtifacts",
     "SyntheticTask",
     "TargetRegion",
     "generate_retrieval_case",
     "load_config",
     "run_attention",
     "run_experiment",
+    "generate_plots",
 ]

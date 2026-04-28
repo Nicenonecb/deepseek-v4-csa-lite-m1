@@ -30,7 +30,14 @@ Unit 4 adds the experiment data pipeline and result artifacts:
 - `experiments/run_litekv.py` writes `results/metrics.csv` and `results/metrics.json` when run without `--dry-run`.
 - `tests/test_experiment.py` verifies smoke runs, deterministic rows, missing-directory creation, invalid mode handling, and artifact columns.
 
-Later units will add plots and article-facing notes.
+Unit 5 adds plots and article-facing notes:
+
+- `src/litekv/plots.py` regenerates plot PNGs from saved metrics.
+- `experiments/run_litekv.py` now writes metrics and plots in one run.
+- `notes/article_results_template.md` gives safe wording and explicit non-claims for the article.
+- `tests/test_plots.py` verifies expected filenames, empty input handling, and optional top-k sweep behavior.
+
+The optional Unit 6 toy decoder wrapper is still intentionally separate from the attention-level MVP.
 
 ## Quick Check
 
@@ -46,6 +53,16 @@ uv pip install -e '.[experiment,test]'
 .venv/bin/python experiments/run_litekv.py --dry-run
 .venv/bin/python experiments/run_litekv.py
 ```
+
+The full run writes:
+
+- `results/metrics.csv`
+- `results/metrics.json`
+- `results/kv_cache_vs_context.png`
+- `results/flops_vs_context.png`
+- `results/latency_vs_context.png`
+- `results/retrieval_accuracy.png`
+- `results/topk_tradeoff.png`
 
 ## Scope
 

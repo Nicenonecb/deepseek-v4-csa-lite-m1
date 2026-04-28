@@ -299,7 +299,7 @@ Complete Unit 6 only after the attention-level evidence path is stable. This kee
 **Verification:**
 - Running the default experiment produces result artifacts that can be used directly by plotting code and article analysis.
 
-- [ ] **Unit 5: Plotting and article-facing outputs**
+- [x] **Unit 5: Plotting and article-facing outputs**
 
 **Goal:** Convert result artifacts into clear plots and short markdown notes for the DeepSeek-V4 article.
 
