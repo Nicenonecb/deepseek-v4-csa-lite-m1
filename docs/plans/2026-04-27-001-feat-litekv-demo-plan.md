@@ -224,7 +224,7 @@ Complete Unit 6 only after the attention-level evidence path is stable. This kee
 **Verification:**
 - The generated cases can be inspected and explain which remote token/block each attention mode should retrieve.
 
-- [ ] **Unit 3: Attention implementations and theoretical accounting**
+- [x] **Unit 3: Attention implementations and theoretical accounting**
 
 **Goal:** Implement dense, sliding window, CSA-lite, and CSA-lite + local window attention modes with shared inputs and comparable metrics.
 
@@ -265,7 +265,7 @@ Complete Unit 6 only after the attention-level evidence path is stable. This kee
 **Verification:**
 - Tests prove the four modes are comparable and produce expected retrieval/cost behavior on constructed cases.
 
-- [ ] **Unit 4: Experiment runner and result artifacts**
+- [x] **Unit 4: Experiment runner and result artifacts**
 
 **Goal:** Run the full matrix of context lengths, modes, top-k values, and local window settings, then write auditable result files.
 
@@ -299,7 +299,7 @@ Complete Unit 6 only after the attention-level evidence path is stable. This kee
 **Verification:**
 - Running the default experiment produces result artifacts that can be used directly by plotting code and article analysis.
 
-- [ ] **Unit 5: Plotting and article-facing outputs**
+- [x] **Unit 5: Plotting and article-facing outputs**
 
 **Goal:** Convert result artifacts into clear plots and short markdown notes for the DeepSeek-V4 article.
 
@@ -330,7 +330,7 @@ Complete Unit 6 only after the attention-level evidence path is stable. This kee
 **Verification:**
 - Article-facing files exist under `results/`, and `notes/article_results_template.md` explains how to interpret them without overstating claims.
 
-- [ ] **Unit 6: Optional toy decoder wrapper**
+- [x] **Unit 6: Optional toy decoder wrapper**
 
 **Goal:** Provide a small decoder-only wrapper that can demonstrate where the attention modules would sit in a toy Transformer, without making training a blocker for the MVP.
 

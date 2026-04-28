@@ -1,6 +1,8 @@
 DeepSeek-V4技术拆解与LiteKV验证方案.md
 __pycache__/
 *.py[cod]
+.venv/
+*.egg-info/
 .pytest_cache/
 .DS_Store
 results/*
@@ -9,3 +11,4 @@ data/*
 !data/.gitkeep
 notes/*
 !notes/.gitkeep
+!notes/article_results_template.md
