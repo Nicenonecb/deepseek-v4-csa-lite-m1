@@ -37,7 +37,11 @@ Unit 5 adds plots and article-facing notes:
 - `notes/article_results_template.md` gives safe wording and explicit non-claims for the article.
 - `tests/test_plots.py` verifies expected filenames, empty input handling, and optional top-k sweep behavior.
 
-The optional Unit 6 toy decoder wrapper is still intentionally separate from the attention-level MVP.
+Unit 6 adds an optional toy decoder wrapper:
+
+- `src/litekv/model.py` demonstrates where the shared attention interface sits in a decoder-only block.
+- `tests/test_model.py` verifies dense, CSA-lite, short-sequence, and unsupported-mode paths.
+- This wrapper is integration scaffolding only; it does not train or claim language-model quality.
 
 ## Quick Check
 

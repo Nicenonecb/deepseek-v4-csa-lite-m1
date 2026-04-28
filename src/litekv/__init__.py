@@ -5,6 +5,7 @@ from litekv.data import RetrievalCase, SyntheticTask, TargetRegion, generate_ret
 from litekv.attention import AttentionResult, run_attention
 from litekv.metrics import AttentionMetrics
 from litekv.experiment import ExperimentArtifacts, run_experiment
+from litekv.model import ToyDecoderBlock, ToyDecoderConfig, ToyDecoderOutput
 from litekv.plots import PlotArtifacts, generate_plots
 
 __all__ = [
@@ -17,6 +18,9 @@ __all__ = [
     "PlotArtifacts",
     "SyntheticTask",
     "TargetRegion",
+    "ToyDecoderBlock",
+    "ToyDecoderConfig",
+    "ToyDecoderOutput",
     "generate_retrieval_case",
     "load_config",
     "run_attention",

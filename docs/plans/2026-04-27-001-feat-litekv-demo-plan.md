@@ -330,7 +330,7 @@ Complete Unit 6 only after the attention-level evidence path is stable. This kee
 **Verification:**
 - Article-facing files exist under `results/`, and `notes/article_results_template.md` explains how to interpret them without overstating claims.
 
-- [ ] **Unit 6: Optional toy decoder wrapper**
+- [x] **Unit 6: Optional toy decoder wrapper**
 
 **Goal:** Provide a small decoder-only wrapper that can demonstrate where the attention modules would sit in a toy Transformer, without making training a blocker for the MVP.
 
