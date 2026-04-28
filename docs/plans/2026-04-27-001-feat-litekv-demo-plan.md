@@ -224,7 +224,7 @@ Complete Unit 6 only after the attention-level evidence path is stable. This kee
 **Verification:**
 - The generated cases can be inspected and explain which remote token/block each attention mode should retrieve.
 
-- [ ] **Unit 3: Attention implementations and theoretical accounting**
+- [x] **Unit 3: Attention implementations and theoretical accounting**
 
 **Goal:** Implement dense, sliding window, CSA-lite, and CSA-lite + local window attention modes with shared inputs and comparable metrics.
 
@@ -265,7 +265,7 @@ Complete Unit 6 only after the attention-level evidence path is stable. This kee
 **Verification:**
 - Tests prove the four modes are comparable and produce expected retrieval/cost behavior on constructed cases.
 
-- [ ] **Unit 4: Experiment runner and result artifacts**
+- [x] **Unit 4: Experiment runner and result artifacts**
 
 **Goal:** Run the full matrix of context lengths, modes, top-k values, and local window settings, then write auditable result files.
 

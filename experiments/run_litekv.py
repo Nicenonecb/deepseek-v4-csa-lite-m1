@@ -11,6 +11,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from litekv.config import load_config  # noqa: E402
+from litekv.experiment import run_experiment  # noqa: E402
 
 
 def main() -> int:
@@ -31,7 +32,14 @@ def main() -> int:
     print(json.dumps(config.as_dict(), indent=2, sort_keys=True))
 
     if not args.dry_run:
-        print("Experiment runner is scaffolded. Implement Unit 4 to run metrics.")
+        artifacts = run_experiment(config)
+        print(
+            "Wrote {} rows to {} and {}.".format(
+                len(artifacts.rows),
+                artifacts.csv_path,
+                artifacts.json_path,
+            )
+        )
 
     return 0
 

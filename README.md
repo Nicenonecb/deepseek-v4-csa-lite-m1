@@ -18,14 +18,33 @@ Unit 2 adds deterministic synthetic retrieval cases:
 - `src/litekv/data.py` creates passkey-style task metadata and constructed Q/K/V cases.
 - `tests/test_data.py` verifies deterministic generation, sliding-window reachability, block ids, and validation errors.
 
-Later units will add attention implementations, metrics, experiment outputs, and plots.
+Unit 3 adds comparable attention implementations and theoretical accounting:
+
+- `src/litekv/attention.py` runs dense, sliding-window, CSA-lite, and CSA-lite + local-window attention over constructed cases.
+- `src/litekv/metrics.py` reports shared metrics for KV entries, estimated KV bytes, attention score counts, FLOPs, retrieval hit/recall, and local latency.
+- `tests/test_attention.py` and `tests/test_metrics.py` verify expected retrieval and accounting behavior.
+
+Unit 4 adds the experiment data pipeline and result artifacts:
+
+- `src/litekv/experiment.py` runs the configured matrix of contexts, modes, top-k values, and local windows.
+- `experiments/run_litekv.py` writes `results/metrics.csv` and `results/metrics.json` when run without `--dry-run`.
+- `tests/test_experiment.py` verifies smoke runs, deterministic rows, missing-directory creation, invalid mode handling, and artifact columns.
+
+Later units will add plots and article-facing notes.
 
 ## Quick Check
 
+Use the project virtual environment when running experiment dependencies:
+
 ```bash
-PYTHONPATH=src python3 -m unittest tests/test_experiment.py
-PYTHONPATH=src python3 -m unittest tests/test_data.py
-PYTHONPATH=src python3 experiments/run_litekv.py --dry-run
+uv venv .venv --python /usr/local/bin/python3.10
+uv pip install -e '.[experiment,test]'
+```
+
+```bash
+.venv/bin/python -m pytest -q
+.venv/bin/python experiments/run_litekv.py --dry-run
+.venv/bin/python experiments/run_litekv.py
 ```
 
 ## Scope
