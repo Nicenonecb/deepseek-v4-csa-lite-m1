@@ -166,43 +166,53 @@ def _plot_by_context(plt: Any, rows: Sequence[Dict[str, Any]], path: Path, metri
 
 
 def _plot_topk_tradeoff(plt: Any, rows: Sequence[Dict[str, Any]], path: Path) -> Tuple[Optional[Path], Optional[str]]:
-    sweep_groups = _topk_sweep_groups(rows)
+    sweep_groups = _representative_topk_sweep_groups(rows)
     if not sweep_groups:
         return None, "Skipped topk_tradeoff.png because metrics include no top-k sweep."
 
-    figure, recall_axis = plt.subplots(figsize=(7, 4.5))
-    flops_axis = recall_axis.twinx()
+    context_length = int(sweep_groups[0][1][0]["context_length"])
+    local_window = int(sweep_groups[0][1][0]["local_window"])
+    figure, axes = plt.subplots(1, 2, figsize=(10, 4.2), sharex=True)
+    recall_axis, flops_axis = axes
     for label, group_rows in sweep_groups:
         sorted_rows = sorted(group_rows, key=lambda row: int(row["top_k"]))
         recall_axis.plot(
             [int(row["top_k"]) for row in sorted_rows],
             [float(row["retrieval_recall"]) for row in sorted_rows],
             marker="o",
-            label="{} recall".format(label),
+            label=label,
         )
         flops_axis.plot(
             [int(row["top_k"]) for row in sorted_rows],
             [float(row["estimated_attention_flops"]) for row in sorted_rows],
-            linestyle="--",
-            marker="x",
-            alpha=0.65,
-            label="{} FLOPs".format(label),
+            marker="o",
+            label=label,
         )
-    recall_axis.set_title("LiteKV synthetic demo: top-k cost/recall trade-off")
-    recall_axis.set_xlabel("top-k selected blocks")
+    figure.suptitle(
+        "LiteKV synthetic demo: top-k trade-off (context {}, local {})".format(
+            context_length,
+            local_window,
+        )
+    )
+    recall_axis.set_title("Retrieval signal")
     recall_axis.set_ylabel("Retrieval recall")
-    flops_axis.set_ylabel("Estimated attention FLOPs")
+    recall_axis.set_xlabel("top-k selected blocks")
+    recall_axis.set_ylim(-0.05, 1.05)
     recall_axis.grid(True, alpha=0.25)
-    handles, labels = recall_axis.get_legend_handles_labels()
-    flops_handles, flops_labels = flops_axis.get_legend_handles_labels()
-    recall_axis.legend(handles + flops_handles, labels + flops_labels, fontsize="small")
+
+    flops_axis.set_title("Theoretical cost")
+    flops_axis.set_ylabel("Estimated attention FLOPs")
+    flops_axis.set_xlabel("top-k selected blocks")
+    flops_axis.grid(True, alpha=0.25)
+    flops_axis.legend(loc="best")
+
     figure.tight_layout()
     figure.savefig(path, dpi=160)
     plt.close(figure)
     return path, None
 
 
-def _topk_sweep_groups(rows: Sequence[Dict[str, Any]]) -> List[Tuple[str, List[Dict[str, Any]]]]:
+def _representative_topk_sweep_groups(rows: Sequence[Dict[str, Any]]) -> List[Tuple[str, List[Dict[str, Any]]]]:
     groups: Dict[Tuple[str, int, int], List[Dict[str, Any]]] = {}
     for row in rows:
         if str(row["mode"]) not in {"csa_lite", "csa_lite_local"}:
@@ -210,12 +220,29 @@ def _topk_sweep_groups(rows: Sequence[Dict[str, Any]]) -> List[Tuple[str, List[D
         key = (str(row["mode"]), int(row["context_length"]), int(row["local_window"]))
         groups.setdefault(key, []).append(row)
 
-    sweep_groups = []
-    for key, group_rows in sorted(groups.items()):
+    sweep_keys = [
+        key
+        for key, group_rows in groups.items()
+        if len({int(row["top_k"]) for row in group_rows}) > 1
+    ]
+    if not sweep_keys:
+        return []
+
+    max_context = max(context_length for _, context_length, _ in sweep_keys)
+    local_window = min(local_window for _, context_length, local_window in sweep_keys if context_length == max_context)
+    representative_keys = [
+        key
+        for key in sweep_keys
+        if key[1] == max_context and key[2] == local_window
+    ]
+
+    sweep_groups: List[Tuple[str, List[Dict[str, Any]]]] = []
+    for key in sorted(representative_keys):
+        group_rows = groups[key]
         top_k_values = {int(row["top_k"]) for row in group_rows}
         if len(top_k_values) > 1:
-            mode, context_length, local_window = key
-            label = "{} / ctx {} / local {}".format(mode, context_length, local_window)
+            mode, _, _ = key
+            label = str(mode)
             sweep_groups.append((label, group_rows))
     return sweep_groups
 
