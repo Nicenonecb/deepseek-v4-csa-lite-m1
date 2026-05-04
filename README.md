@@ -4,44 +4,6 @@ LiteKV is a small demo for a DeepSeek-V4 technical article. Its goal is to make 
 
 LiteKV is not a DeepSeek-V4 reproduction. It does not load official model weights, reproduce the full DSA/HCA/CSA stack, or prove official 1M-context behavior. It is an experimental microscope for mechanism-level claims: dense attention cost, sliding-window limitations, remote KV compression, sparse top-k block selection, and local-window compensation.
 
-## Current Status
-
-Unit 1 provides the project scaffold and configuration layer:
-
-- `src/litekv/config.py` loads experiment config.
-- `experiments/configs/default.yaml` defines M1-friendly defaults.
-- `experiments/run_litekv.py` validates and prints the resolved config.
-- `tests/test_experiment.py` covers config loading and validation.
-
-Unit 2 adds deterministic synthetic retrieval cases:
-
-- `src/litekv/data.py` creates passkey-style task metadata and constructed Q/K/V cases.
-- `tests/test_data.py` verifies deterministic generation, sliding-window reachability, block ids, and validation errors.
-
-Unit 3 adds comparable attention implementations and theoretical accounting:
-
-- `src/litekv/attention.py` runs dense, sliding-window, CSA-lite, and CSA-lite + local-window attention over constructed cases.
-- `src/litekv/metrics.py` reports shared metrics for KV entries, estimated KV bytes, attention score counts, FLOPs, retrieval hit/recall, and local latency.
-- `tests/test_attention.py` and `tests/test_metrics.py` verify expected retrieval and accounting behavior.
-
-Unit 4 adds the experiment data pipeline and result artifacts:
-
-- `src/litekv/experiment.py` runs the configured matrix of contexts, modes, top-k values, and local windows.
-- `experiments/run_litekv.py` writes `results/metrics.csv` and `results/metrics.json` when run without `--dry-run`.
-- `tests/test_experiment.py` verifies smoke runs, deterministic rows, missing-directory creation, invalid mode handling, and artifact columns.
-
-Unit 5 adds plots and article-facing notes:
-
-- `src/litekv/plots.py` regenerates plot PNGs from saved metrics.
-- `experiments/run_litekv.py` now writes metrics and plots in one run.
-- `notes/article_results_template.md` gives safe wording and explicit non-claims for the article.
-- `tests/test_plots.py` verifies expected filenames, empty input handling, and optional top-k sweep behavior.
-
-Unit 6 adds an optional toy decoder wrapper:
-
-- `src/litekv/model.py` demonstrates where the shared attention interface sits in a decoder-only block.
-- `tests/test_model.py` verifies dense, CSA-lite, short-sequence, and unsupported-mode paths.
-- This wrapper is integration scaffolding only; it does not train or claim language-model quality.
 
 ## Quick Check
 
