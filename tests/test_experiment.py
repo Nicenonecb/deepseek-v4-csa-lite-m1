@@ -116,7 +116,8 @@ class ExperimentRunnerTest(unittest.TestCase):
 
             artifacts = run_experiment(config, measure_latency=False)
 
-            self.assertEqual(len(artifacts.rows), 32)
+            expected_rows = len(ATTENTION_MODES) * 2 * 2 * 2
+            self.assertEqual(len(artifacts.rows), expected_rows)
             for row in artifacts.rows:
                 self.assertIn(row["mode"], ATTENTION_MODES)
                 self.assertIn(row["context_length"], [16, 32])
@@ -124,6 +125,7 @@ class ExperimentRunnerTest(unittest.TestCase):
                 self.assertIn(row["local_window"], [4, 8])
                 self.assertIn("attention_score_count", row)
                 self.assertIn("estimated_attention_flops", row)
+                self.assertIn("answer_signal", row)
                 self.assertIn("forward_latency_ms", row)
 
 

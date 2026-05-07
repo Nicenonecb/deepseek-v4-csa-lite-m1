@@ -10,6 +10,7 @@ PLOT_FILENAMES = (
     "flops_vs_context.png",
     "latency_vs_context.png",
     "retrieval_accuracy.png",
+    "retrieved_signal_vs_context.png",
     "topk_tradeoff.png",
 )
 
@@ -22,6 +23,8 @@ REQUIRED_METRIC_FIELDS = (
     "estimated_attention_flops",
     "forward_latency_ms",
     "retrieval_recall",
+    "answer_signal",
+    "retrieved_signal",
 )
 
 
@@ -77,6 +80,14 @@ def generate_plots(metrics_path: Path, output_dir: Path = None) -> PlotArtifacts
             ylabel="Retrieval recall",
             title="LiteKV synthetic demo: retrieval recall vs context",
         ),
+        _plot_by_context(
+            plt,
+            representative_rows,
+            output / "retrieved_signal_vs_context.png",
+            metric="retrieved_signal",
+            ylabel="Signal carried by top-scored candidate",
+            title="LiteKV synthetic demo: retrieved value signal vs context",
+        ),
     ]
 
     topk_path, warning = _plot_topk_tradeoff(plt, rows, output / "topk_tradeoff.png")
@@ -116,10 +127,11 @@ def _coerce_csv_row(row: Dict[str, str]) -> Dict[str, Any]:
         "target_block",
         "compressed_entry_count",
         "local_token_count",
+        "selected_token_count",
     ):
         if field in coerced and coerced[field] != "":
             coerced[field] = int(coerced[field])
-    for field in ("forward_latency_ms", "retrieval_recall"):
+    for field in ("forward_latency_ms", "retrieval_recall", "answer_signal", "retrieved_signal"):
         if field in coerced and coerced[field] != "":
             coerced[field] = float(coerced[field])
     return coerced
@@ -184,7 +196,7 @@ def _plot_topk_tradeoff(plt: Any, rows: Sequence[Dict[str, Any]], path: Path) ->
         )
         flops_axis.plot(
             [int(row["top_k"]) for row in sorted_rows],
-            [float(row["estimated_attention_flops"]) for row in sorted_rows],
+            [float(row["retrieved_signal"]) for row in sorted_rows],
             marker="o",
             label=label,
         )
@@ -200,8 +212,8 @@ def _plot_topk_tradeoff(plt: Any, rows: Sequence[Dict[str, Any]], path: Path) ->
     recall_axis.set_ylim(-0.05, 1.05)
     recall_axis.grid(True, alpha=0.25)
 
-    flops_axis.set_title("Theoretical cost")
-    flops_axis.set_ylabel("Estimated attention FLOPs")
+    flops_axis.set_title("Retrieved value signal")
+    flops_axis.set_ylabel("Top candidate signal")
     flops_axis.set_xlabel("top-k selected blocks")
     flops_axis.grid(True, alpha=0.25)
     flops_axis.legend(loc="best")
@@ -215,7 +227,7 @@ def _plot_topk_tradeoff(plt: Any, rows: Sequence[Dict[str, Any]], path: Path) ->
 def _representative_topk_sweep_groups(rows: Sequence[Dict[str, Any]]) -> List[Tuple[str, List[Dict[str, Any]]]]:
     groups: Dict[Tuple[str, int, int], List[Dict[str, Any]]] = {}
     for row in rows:
-        if str(row["mode"]) not in {"csa_lite", "csa_lite_local"}:
+        if str(row["mode"]) not in {"csa_lite", "csa_lite_local", "nsa_lite"}:
             continue
         key = (str(row["mode"]), int(row["context_length"]), int(row["local_window"]))
         groups.setdefault(key, []).append(row)

@@ -8,6 +8,7 @@ ATTENTION_MODES = (
     "sliding_window",
     "csa_lite",
     "csa_lite_local",
+    "nsa_lite",
 )
 
 

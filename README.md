@@ -28,6 +28,7 @@ The full run writes:
 - `results/flops_vs_context.png`
 - `results/latency_vs_context.png`
 - `results/retrieval_accuracy.png`
+- `results/retrieved_signal_vs_context.png`
 - `results/topk_tradeoff.png`
 
 ## Scope

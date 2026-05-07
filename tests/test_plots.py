@@ -6,7 +6,7 @@ from pathlib import Path
 from litekv.plots import PLOT_FILENAMES, generate_plots
 
 
-REFERENCE_DOC = Path(__file__).resolve().parents[1] / "DeepSeek-V4技术拆解与LiteKV验证方案.md"
+REFERENCE_DOC = Path(__file__).resolve().parents[1] / "DeepSeek-V4注意力机制与LiteKV验证技术分享.md"
 
 
 class PlotGenerationTest(unittest.TestCase):
@@ -34,7 +34,7 @@ class PlotGenerationTest(unittest.TestCase):
             artifacts = generate_plots(metrics_path)
 
             self.assertNotIn("topk_tradeoff.png", [path.name for path in artifacts.plot_paths])
-            self.assertEqual(len(artifacts.plot_paths), 4)
+            self.assertEqual(len(artifacts.plot_paths), 5)
             self.assertEqual(
                 artifacts.warnings,
                 ["Skipped topk_tradeoff.png because metrics include no top-k sweep."],
@@ -71,6 +71,8 @@ def _metric_rows(top_k_values):
                         "estimated_attention_flops": int(context_length * top_k * 10 * multiplier),
                         "forward_latency_ms": float(context_length) / 10.0 * multiplier,
                         "retrieval_recall": 1.0 if mode == "dense" else float(top_k) / max(top_k_values),
+                        "answer_signal": multiplier * float(top_k) / max(top_k_values),
+                        "retrieved_signal": multiplier,
                     }
                 )
     return rows

@@ -8,4 +8,4 @@ local_window_values: [128, 256]
 seed: 2026
 device: auto
 output_dir: results
-attention_modes: [dense, sliding_window, csa_lite, csa_lite_local]
+attention_modes: [dense, sliding_window, csa_lite, csa_lite_local, nsa_lite]

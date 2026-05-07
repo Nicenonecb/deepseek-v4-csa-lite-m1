@@ -20,6 +20,8 @@ class AttentionMetrics:
     selected_block_count: int
     retrieval_hit: bool
     retrieval_recall: float
+    answer_signal: float
+    retrieved_signal: float
     forward_latency_ms: float
     target_position: int
     target_block: int
@@ -29,6 +31,7 @@ class AttentionMetrics:
     retrieved_block: Optional[int] = None
     compressed_entry_count: int = 0
     local_token_count: int = 0
+    selected_token_count: int = 0
 
     def as_dict(self) -> Dict[str, Any]:
         return {
@@ -45,6 +48,8 @@ class AttentionMetrics:
             "selected_block_count": self.selected_block_count,
             "retrieval_hit": self.retrieval_hit,
             "retrieval_recall": self.retrieval_recall,
+            "answer_signal": self.answer_signal,
+            "retrieved_signal": self.retrieved_signal,
             "forward_latency_ms": self.forward_latency_ms,
             "target_position": self.target_position,
             "target_block": self.target_block,
@@ -54,6 +59,7 @@ class AttentionMetrics:
             "retrieved_block": self.retrieved_block,
             "compressed_entry_count": self.compressed_entry_count,
             "local_token_count": self.local_token_count,
+            "selected_token_count": self.selected_token_count,
         }
 
 

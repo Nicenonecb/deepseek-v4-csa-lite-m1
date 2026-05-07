@@ -33,6 +33,8 @@ METRIC_FIELDNAMES = [
     "selected_block_count",
     "retrieval_hit",
     "retrieval_recall",
+    "answer_signal",
+    "retrieved_signal",
     "forward_latency_ms",
     "target_position",
     "target_block",
@@ -42,6 +44,7 @@ METRIC_FIELDNAMES = [
     "retrieved_block",
     "compressed_entry_count",
     "local_token_count",
+    "selected_token_count",
 ]
 
 

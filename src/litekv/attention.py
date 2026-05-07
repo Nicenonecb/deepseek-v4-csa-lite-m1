@@ -47,6 +47,8 @@ def run_attention(
             return _csa_lite_attention(case, top_k, ratio)
         if mode == "csa_lite_local":
             return _csa_lite_local_attention(case, top_k, ratio, window)
+        if mode == "nsa_lite":
+            return _nsa_lite_attention(case, top_k, ratio, window)
         raise ValueError("Unknown attention mode: {}".format(mode))
 
     if measure_latency:
@@ -62,6 +64,7 @@ def run_attention(
         local_window=window,
         dtype_bytes=dtype_bytes,
         forward_latency_ms=latency_ms,
+        output=output,
         inputs=inputs,
     )
     return AttentionResult(output=output, metrics=metrics)
@@ -96,8 +99,10 @@ class _MetricInputs:
     attended_positions: List[int]
     retrieved_position: Optional[int]
     retrieved_block: Optional[int]
+    retrieved_signal: float
     compressed_entry_count: int
     local_token_count: int
+    selected_token_count: int
     retrieval_hit: bool
 
 
@@ -117,8 +122,10 @@ def _dense_attention(case: RetrievalCase) -> Tuple[Vector, _MetricInputs]:
         attended_positions=positions,
         retrieved_position=retrieved_position,
         retrieved_block=None,
+        retrieved_signal=_candidate_signal(best),
         compressed_entry_count=0,
         local_token_count=len(candidates),
+        selected_token_count=0,
         retrieval_hit=retrieval_hit,
     )
 
@@ -143,8 +150,10 @@ def _sliding_window_attention(
         attended_positions=positions,
         retrieved_position=retrieved_position,
         retrieved_block=None,
+        retrieved_signal=_candidate_signal(best),
         compressed_entry_count=0,
         local_token_count=len(candidates),
+        selected_token_count=0,
         retrieval_hit=retrieval_hit,
     )
 
@@ -171,8 +180,10 @@ def _csa_lite_attention(
         attended_positions=[],
         retrieved_position=None,
         retrieved_block=retrieved_block,
+        retrieved_signal=_candidate_signal(best),
         compressed_entry_count=len(blocks),
         local_token_count=0,
+        selected_token_count=0,
         retrieval_hit=retrieval_hit,
     )
 
@@ -214,8 +225,70 @@ def _csa_lite_local_attention(
         attended_positions=local_positions,
         retrieved_position=best.position if best and best.position is not None else None,
         retrieved_block=best.block if best else None,
+        retrieved_signal=_candidate_signal(best),
         compressed_entry_count=len(remote_blocks),
         local_token_count=len(local_positions),
+        selected_token_count=0,
+        retrieval_hit=retrieval_hit,
+    )
+
+
+def _nsa_lite_attention(
+    case: RetrievalCase,
+    top_k: int,
+    compression_ratio: int,
+    local_window: int,
+) -> Tuple[Vector, _MetricInputs]:
+    local_start = max(0, case.task.query_position - local_window + 1)
+    local_positions = list(range(local_start, case.task.query_position + 1))
+    remote_end = local_start - 1
+    remote_blocks = _compressed_blocks(case, compression_ratio, end_position=remote_end)
+    selected_remote = _select_blocks(case.query, remote_blocks, top_k)
+    selected_blocks = [block_index for block_index, _, _ in selected_remote]
+    selected_positions = _positions_for_blocks(
+        selected_blocks,
+        compression_ratio=compression_ratio,
+        end_position=remote_end,
+    )
+
+    candidates = [
+        _Candidate(key=key, value=value, block=block_index)
+        for block_index, key, value in remote_blocks
+    ]
+    candidates.extend(
+        _Candidate(
+            key=case.keys[position],
+            value=case.values[position],
+            position=position,
+            block=position // compression_ratio,
+        )
+        for position in selected_positions
+    )
+    candidates.extend(
+        _Candidate(
+            key=case.keys[position],
+            value=case.values[position],
+            position=position,
+            block=position // compression_ratio,
+        )
+        for position in local_positions
+    )
+
+    output, best = _attend(case.query, candidates)
+    target_in_local = case.task.target_position in local_positions
+    target_selected = case.task.target_position in selected_positions
+    retrieval_hit = target_in_local or target_selected
+    return output, _MetricInputs(
+        kv_entries=len(remote_blocks) + len(selected_positions) + len(local_positions),
+        attention_score_count=(2 * len(remote_blocks)) + len(selected_positions) + len(local_positions),
+        selected_blocks=selected_blocks,
+        attended_positions=selected_positions + local_positions,
+        retrieved_position=best.position if best and best.position is not None else None,
+        retrieved_block=best.block if best else None,
+        retrieved_signal=_candidate_signal(best),
+        compressed_entry_count=len(remote_blocks),
+        local_token_count=len(local_positions),
+        selected_token_count=len(selected_positions),
         retrieval_hit=retrieval_hit,
     )
 
@@ -241,6 +314,19 @@ def _compressed_blocks(
         value = _mean_vectors([case.values[position] for position in positions])
         blocks.append((block_index, key, value))
     return blocks
+
+
+def _positions_for_blocks(
+    block_indexes: Sequence[int],
+    compression_ratio: int,
+    end_position: int,
+) -> List[int]:
+    positions: List[int] = []
+    for block_index in block_indexes:
+        block_start = block_index * compression_ratio
+        block_end = min(block_start + compression_ratio - 1, end_position)
+        positions.extend(range(block_start, block_end + 1))
+    return positions
 
 
 def _select_blocks(
@@ -275,6 +361,7 @@ def _build_metrics(
     local_window: int,
     dtype_bytes: int,
     forward_latency_ms: float,
+    output: Vector,
     inputs: _MetricInputs,
 ) -> AttentionMetrics:
     return AttentionMetrics(
@@ -294,6 +381,8 @@ def _build_metrics(
         selected_block_count=len(inputs.selected_blocks),
         retrieval_hit=inputs.retrieval_hit,
         retrieval_recall=1.0 if inputs.retrieval_hit else 0.0,
+        answer_signal=output[0] if output else 0.0,
+        retrieved_signal=inputs.retrieved_signal,
         forward_latency_ms=forward_latency_ms,
         target_position=case.task.target_position,
         target_block=case.task.target_block,
@@ -303,11 +392,18 @@ def _build_metrics(
         retrieved_block=inputs.retrieved_block,
         compressed_entry_count=inputs.compressed_entry_count,
         local_token_count=inputs.local_token_count,
+        selected_token_count=inputs.selected_token_count,
     )
 
 
 def _dot(left: Vector, right: Vector) -> float:
     return sum(a * b for a, b in zip(left, right))
+
+
+def _candidate_signal(candidate: Optional[_Candidate]) -> float:
+    if candidate is None or not candidate.value:
+        return 0.0
+    return candidate.value[0]
 
 
 def _softmax(scores: Sequence[float]) -> List[float]:

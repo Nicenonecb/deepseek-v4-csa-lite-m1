@@ -89,6 +89,25 @@ class AttentionImplementationTest(unittest.TestCase):
         self.assertEqual(result.metrics.kv_entries, result.metrics.compressed_entry_count + 8)
         self.assertTrue(result.metrics.retrieval_hit)
 
+    def test_nsa_lite_selects_fine_grained_tokens_from_target_block(self):
+        case = generate_retrieval_case(
+            context_length=64,
+            hidden_size=8,
+            compression_ratio=4,
+            local_window=8,
+            target_region=TargetRegion.EARLY,
+            seed=8,
+        )
+
+        result = run_attention(case, "nsa_lite", top_k=1, compression_ratio=4, local_window=8)
+
+        self.assertIn(case.task.target_block, result.metrics.selected_blocks)
+        self.assertIn(case.task.target_position, result.metrics.attended_positions)
+        self.assertEqual(result.metrics.selected_token_count, 4)
+        self.assertTrue(result.metrics.retrieval_hit)
+        self.assertGreater(result.metrics.answer_signal, 0.0)
+        self.assertEqual(result.metrics.retrieved_signal, 1.0)
+
     def test_local_window_larger_than_context_behaves_like_full_local_coverage(self):
         case = generate_retrieval_case(
             context_length=16,
